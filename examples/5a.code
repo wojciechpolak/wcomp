@@ -1,0 +1,13 @@
+function foo (x, y)
+{
+  auto z;
+  auto w;
+
+  z = 1 + x;
+  w = 2 + y;
+
+  return z/w;
+}
+
+print foo (9, 3); // 2
+
