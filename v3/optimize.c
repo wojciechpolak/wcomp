@@ -439,8 +439,8 @@ eval_binop_const (NODE *node)
   case OPCODE_NOT:
     abort();
   }
-  free (left);
-  free (right);
+  node_free (left);
+  node_free (right);
   node->left = node->right = NULL;
   node->type = NODE_CONST;
   optcnt++;
@@ -479,8 +479,8 @@ eval_binop_simple (NODE *node)
 	  node->v.symbol = right->v.symbol;
 	}
     }
-  free (left);
-  free (right);
+  node_free (left);
+  node_free (right);
   node->left = node->right = NULL;
 }
 
@@ -527,7 +527,7 @@ pass2_unop (NODE *node)
     default:
       abort();
     }
-    free (operand);
+    node_free (operand);
     optcnt++;
   }
 }
@@ -541,7 +541,7 @@ pass2_asgn (NODE *node)
       if (verbose)
 	printf ("Optimizing node %4.4lu (ASGN)...\n", node->node_id);
 
-      free (node->v.asgn.expr);
+      node_free (node->v.asgn.expr);
       node->v.asgn.expr = NULL;
       node->type = NODE_NOOP;
     }

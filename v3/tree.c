@@ -24,7 +24,7 @@
 #include "tree.h"
 
 NODE *root; /* the root of a parse tree */
-NODE *memory_pool;
+static NODE *memory_pool;
 
 static unsigned int last_node_id;
 
@@ -49,14 +49,11 @@ addnode (enum node_type type)
 }
 
 void
-freenode (NODE *node)
+node_free (NODE *node)
 {
-  /* postorder */
-  if (node) {
-    freenode (node->left);
-    freenode (node->right);
-    free (node);
-  }
+	/* Does not do anything. Ideally should remove the node
+	   from memory_pool and append (or prepend) it to
+	   free_memory_pool */
 }
 
 void

@@ -140,7 +140,7 @@ extern NODE *root;  /* the root of a parse tree */
 
 /* function prototypes */
 NODE *addnode (enum node_type);
-void freenode (NODE *);
+void node_free (NODE *);
 void free_all_nodes (void);
 ARGLIST *make_arglist (NODE *, ARGLIST *);
 
