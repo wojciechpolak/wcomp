@@ -41,7 +41,12 @@ struct variable_struct
   enum qualifier_type qualifier;    /* qualifier */
   struct node_struct *entry_point;  /* Entry point to the variable */
   off_t rel_address;                /* relative address against TOS */
+};
 
+struct varlist_struct
+{
+  struct varlist_struct *next;
+  struct variable_struct *var;
 };
 
 struct function_struct
@@ -73,8 +78,9 @@ struct symlist_struct
   struct symbol_struct *symbol;
 };
 
-typedef struct variable_struct variable_t;
 typedef struct function_struct function_t;
+typedef struct variable_struct variable_t;
+typedef struct varlist_struct varlist_t;
 typedef struct symbol_struct SYMBOL;
 typedef struct symlist_struct SYMLIST;
 

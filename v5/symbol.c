@@ -21,7 +21,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "symbol.h"
+#include "tree.h"
 
 static void copy_to_history (SYMBOL *);
 static void free_symbol (SYMBOL *s);
@@ -228,10 +230,93 @@ print_all_symbols (SYMBOL *s)
   Computing the stack.
 */
 
+static varlist_t *varlist;
+
+int
+find_variable (variable_t *var)
+{
+  varlist_t *p;
+
+  for (p = varlist; p; p = p->next)
+    if (p->var == var)
+      return 1; /* found */
+  return 0; /* not found */
+}
+
+void
+add_variable (variable_t *var)
+{
+  varlist_t *new = (varlist_t *) malloc (sizeof (varlist_t));
+
+  if (varlist == NULL)
+    new->next = NULL;
+  else
+    new->next = varlist;
+
+  new->var = var;
+  varlist  = new;
+}
+
+void
+free_varlist (void)
+{
+  varlist_t *p, *next;
+  for (p = varlist; p; p = next)
+    {
+      next = p->next;
+      free (p);
+    }
+  varlist = NULL;
+}
+
+static void
+register_var (NODE *node)
+{
+  if (node->v.symbol->type == SYMBOL_VAR)
+    {
+      variable_t *var = node->v.symbol->v.var;
+      if (var->qualifier == QUA_AUTO && !find_variable (var))
+	add_variable (var);
+    }
+}
+
+traverse_fp locate_vars_fptab[] = {
+  NULL,         /* NODE_NOOP */
+  NULL,         /* NODE_UNOP */
+  NULL,         /* NODE_BINOP */
+  NULL,         /* NODE_CONST */
+  register_var, /* NODE_VAR */
+  NULL,         /* NODE_CALL */
+  NULL,         /* NODE_ASGN */
+  NULL,         /* NODE_EXPR */
+  NULL,         /* NODE_RETURN */
+  NULL,         /* NODE_PRINT */
+  NULL,         /* NODE_JUMP */
+  NULL,         /* NODE_COMPOUND  */
+  NULL,         /* NODE_ITERATION */
+  NULL,         /* NODE_CONDITION */
+  NULL,         /* NODE_VAR_DECL */
+  NULL          /* NODE_FNC_DECL */
+};
+
+static void
+count_offsets (function_t *fnc)
+{
+  off_t tos_offset = 0;
+  varlist_t *p;
+
+  for (p = varlist; p; p = p->next)
+    p->var->rel_address = 1 + tos_offset++;
+  fnc->nauto = tos_offset;
+}
+
 static void
 compute_auto_offsets (function_t *fnc)
 {
-
+  varlist = NULL;
+  traverse (fnc->entry_point, locate_vars_fptab);
+  count_offsets (fnc);
+  free_varlist ();
 }
 
 void
@@ -249,6 +334,7 @@ compute_stack_and_data (void)
       for (p = s->v.fnc->param; p; p = p->next)
 	p->symbol->v.var->rel_address = nparam--;
 
+      /* automatic variables */
       compute_auto_offsets (s->v.fnc);
     }
 
