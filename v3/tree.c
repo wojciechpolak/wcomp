@@ -24,6 +24,8 @@
 #include "tree.h"
 
 NODE *root; /* the root of a parse tree */
+NODE *memory_pool;
+
 static unsigned int last_node_id;
 
 NODE *
@@ -41,6 +43,8 @@ addnode (enum node_type type)
   new->left    = NULL;
   new->right   = NULL;
 
+  new->memory_link = memory_pool;
+  memory_pool = new;
   return new;
 }
 
@@ -53,6 +57,19 @@ freenode (NODE *node)
     freenode (node->right);
     free (node);
   }
+}
+
+void
+free_all_nodes (void)
+{
+  NODE *p, *next;
+
+  for (p = memory_pool; p; p = next)
+    {
+      next = p->memory_link;
+      free (p);
+    }
+  memory_pool = NULL;
 }
 
 ARGLIST *

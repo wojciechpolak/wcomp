@@ -78,6 +78,8 @@ main (int argc, char *argv[])
 	}
     }
 
+  free_all_nodes ();
+
   if (verbose)
     {
       if (symbol_functions || symbol_variables || symbol_history)
