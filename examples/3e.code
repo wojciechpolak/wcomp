@@ -1,0 +1,7 @@
+global a = 0;
+global x = 3;
+
+print 1 * x; /* x */
+print 0 * x; /* 0 */
+print 0 + x; /* x */
+a = a;       /* remove unused node */

@@ -1,0 +1,10 @@
+/*
+   fail.code
+   =========
+*/
+
+// test
+
+print a(1); // test
+print a2,3);
+foo(;

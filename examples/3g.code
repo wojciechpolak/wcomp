@@ -1,0 +1,15 @@
+global x = 3;       // 3
+global y = 4 * x;   // 12
+global z;
+global a;
+
+function f(x)
+{
+  auto l1 = 3;      // 3
+  auto l2 = 4 * l1; // 12
+
+  return 2*x*l2;    // 24 * x
+}
+
+y = 1 + f(y);
+z = (2+3) + x + y;  // 20

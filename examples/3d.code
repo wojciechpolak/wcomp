@@ -1,0 +1,7 @@
+function a(x, y)
+{
+  auto v = 22 + x + y;
+  return v;
+}
+
+print a(55 + 1, 2 + 3 * 4); // a (56, 14)

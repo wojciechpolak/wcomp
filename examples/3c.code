@@ -1,0 +1,7 @@
+function a(x, y)
+{
+  print x;
+  print y;
+}
+
+a(55 + 1, 2 + 3 * 4); // a (56, 14)

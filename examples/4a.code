@@ -1,0 +1,7 @@
+global x = 4;
+global y = 4;
+
+if (x > 1 && x == y)
+{
+  print x;
+}

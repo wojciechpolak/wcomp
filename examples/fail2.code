@@ -1,0 +1,7 @@
+/*
+   fail2.code
+   ==========
+*/
+
+print a(1); // undefined
+print b;    // undefined
