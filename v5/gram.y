@@ -37,8 +37,9 @@ extern char *yytext;
 extern size_t input_line_num;
 extern int errcnt;
 
-static int tos_offset; /* position of the next automatic
-                          variable against ATOS */
+static int data_offset; /* position of the next global variable */
+static int tos_offset;  /* position of the next automatic
+                           variable against ATOS */
 %}
 
 %union
@@ -145,7 +146,9 @@ variable_declaration
                   $$->v.vardecl.symbol = s;
                   $$->v.vardecl.expr = $3;
 
-		  if ($1 == QUA_AUTO)
+		  if ($1 == QUA_GLOBAL)
+		    s->v.var->rel_address = 1 + data_offset++;
+		  else if ($1 == QUA_AUTO)
 		    s->v.var->rel_address = 1 + tos_offset++;
                }
              ;

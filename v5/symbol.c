@@ -227,7 +227,6 @@ print_all_symbols (SYMBOL *s)
 void
 compute_stack_and_data (void)
 {
-  off_t rel = 1;
   SYMBOL *s = symbol_functions;
 
   /* function parameters */
@@ -238,15 +237,6 @@ compute_stack_and_data (void)
       int nparam = s->v.fnc->nparam;
       for (p = s->v.fnc->param; p; p = p->next)
 	p->symbol->v.var->rel_address = nparam--;
-    }
-
-  /* global variables */
-
-  s = symbol_variables;
-
-  for (; s && s->type == SYMBOL_VAR; s = s->next)
-    {
-      s->v.var->rel_address = rel++;
     }
 }
 
