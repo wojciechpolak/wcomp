@@ -1,5 +1,5 @@
 /*
-   V4: tree.c
+   V5: tree.c
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 
@@ -26,6 +26,7 @@
 #include "mm.h"
 
 NODE *root; /* the root of a parse tree */
+int print_offsets; /* Print data offsets of the variables */
 
 static unsigned int last_node_id;
 unsigned int nodes_counter;
@@ -222,6 +223,21 @@ print_var (NODE *node)
 {
   printf ("\t NODE_VAR");
   printf ("\t var = %s", node->v.symbol->name);
+  if (print_offsets && node->v.symbol->type == SYMBOL_VAR)
+    {
+      printf (", ");
+      switch (node->v.symbol->v.var->qualifier)
+	{
+	case QUA_GLOBAL:
+	  printf ("DATA+%ld", node->v.symbol->v.var->rel_address);
+	  break;
+	case QUA_AUTO:
+	  printf ("ATOS-%ld", node->v.symbol->v.var->rel_address);
+	  break;
+	case QUA_PARAMETER:
+	  printf ("PTOS+%ld", node->v.symbol->v.var->rel_address);
+	}
+    }
   fputc ('\n', stdout);
 }
 

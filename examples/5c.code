@@ -1,0 +1,27 @@
+global g1;
+global g2;
+
+function foo (x, y)
+{
+  auto z;
+  auto w;
+
+  z = 1 + x;
+  w = 2 + y;
+
+  return z/w;
+}
+
+function moo (x, y)
+{
+  auto a = x + y;
+
+  return a;
+}
+
+
+g1 = moo (foo(9,3), foo(9,0)); // 7
+g2 = foo (9,0); // 5
+
+print g1;
+print g2;

@@ -1,5 +1,5 @@
 /*
-   V4: main.c
+   V5: main.c
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 
@@ -81,6 +81,10 @@ main (int argc, char *argv[])
     }
 
   compute_stack_and_data ();
+
+  printf ("\n=== Before code generation ===\n\n");
+  print_offsets = 1;
+  print_node (root);
 
   free_all_nodes ();
 

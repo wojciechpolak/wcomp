@@ -1,5 +1,5 @@
 /*
-   V4: symbol.h
+   V5: symbol.h
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 
@@ -40,11 +40,14 @@ struct variable_struct
   int level;                        /* nesting level */
   enum qualifier_type qualifier;    /* qualifier */
   struct node_struct *entry_point;  /* Entry point to the variable */
+  off_t rel_address;                /* relative address against TOS */
+
 };
 
 struct function_struct
 {
   int nparam;                       /* Number of parameters */
+  int nauto;                        /* Number of automatic variables */
   struct symlist_struct *param;     /* Parameter list */
   struct node_struct *entry_point;  /* Entry point to the function */
 };
@@ -57,8 +60,6 @@ struct symbol_struct
   size_t sourceline;                /* source code line number */
   size_t ref_count;                 /* Number of times this symbol
                                        is referenced in the code */
-
-  off_t rel_address;                /* relative address against TOS */
 
   union {
     struct variable_struct *var;    /* pointer to VAR struct */

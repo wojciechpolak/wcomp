@@ -1,5 +1,5 @@
 /*
-   V3: tree.h
+   V5: tree.h
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 
@@ -139,6 +139,7 @@ typedef struct arglist_struct ARGLIST;
 extern NODE *root;  /* the root of a parse tree */
 
 extern unsigned int nodes_counter;
+extern int print_offsets;
 
 /* function prototypes */
 NODE *addnode (enum node_type);

@@ -1,5 +1,5 @@
 /*
-   V3: symbol.c
+   V5: symbol.c
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 
@@ -193,14 +193,15 @@ print_all_symbols (SYMBOL *s)
 	  switch (ptr->v.var->qualifier) {
 	  case QUA_GLOBAL:
 	    printf ("GLOBAL");
+	    printf (", +%ld", ptr->v.var->rel_address);
 	    break;
 	  case QUA_AUTO:
 	    printf ("AUTO");
-	    printf (", TOS: %ld", ptr->rel_address);
+	    printf (", -%ld", ptr->v.var->rel_address);
 	    break;
 	  case QUA_PARAMETER:
 	    printf ("PARAMETER");
-	    printf (", TOS+%ld", ptr->rel_address);
+	    printf (", +%ld", ptr->v.var->rel_address);
 	    break;
 	  default:
 	    printf ("UNKNOWN");
@@ -215,6 +216,8 @@ print_all_symbols (SYMBOL *s)
 
 	for (; p; p = p->next)
 	  printf ("%s ", p->symbol->name);
+
+	printf (", Nauto: %d", ptr->v.fnc->nauto);
       }
 
       fputc ('\n', stdout);
@@ -224,22 +227,26 @@ print_all_symbols (SYMBOL *s)
 void
 compute_stack_and_data (void)
 {
+  off_t rel = -1;
   SYMBOL *s = symbol_functions;
-  SYMLIST *p;
 
-  putchar ('\n');
+  /* function parameters */
 
   for (; s && s->type == SYMBOL_FNC; s = s->next)
-  {
-    int nparam = s->v.fnc->nparam;
-    for (p = s->v.fnc->param; p; p = p->next)
     {
-      p->symbol->rel_address = nparam--;
-      printf ("%s ", p->symbol->name);
+      SYMLIST *p;
+      int nparam = s->v.fnc->nparam;
+      for (p = s->v.fnc->param; p; p = p->next)
+	p->symbol->v.var->rel_address = nparam--;
     }
-    putchar ('\n');
-  }
 
-  putchar ('\n');
+  /* global variables */
+
+  s = symbol_variables;
+
+  for (; s && s->type == SYMBOL_VAR; s = s->next)
+    {
+      s->v.var->rel_address = -1 * rel--; /* positive */
+    }
 }
 
