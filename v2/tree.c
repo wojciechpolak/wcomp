@@ -1,7 +1,7 @@
 /*
    V2: tree.c
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 #include "tree.h"
 
 NODE *root; /* the root of a parse tree */
+NODE *memory_pool;
+
 static unsigned int last_node_id;
 
 NODE *
@@ -41,18 +43,22 @@ addnode (enum node_type type)
   new->left    = NULL;
   new->right   = NULL;
 
+  new->memory_link = memory_pool;
+  memory_pool = new;
   return new;
 }
 
 void
-freenode (NODE *node)
+free_all_nodes (void)
 {
-  /* postorder */
-  if (node) {
-    freenode (node->left);
-    freenode (node->right);
-    free (node);
-  }
+  NODE *p, *next;
+
+  for (p = memory_pool; p; p = next)
+    {
+      next = p->memory_link;
+      free (p);
+    }
+  memory_pool = NULL;
 }
 
 ARGLIST *

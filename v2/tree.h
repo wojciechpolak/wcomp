@@ -1,7 +1,7 @@
 /*
    V2: tree.h
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -68,8 +68,10 @@ enum jump_type
 
 struct node_struct
 {
+  struct node_struct *memory_link;
   struct node_struct *left;
   struct node_struct *right;
+
   unsigned long node_id;          /* Used while printing the parse tree */
   enum node_type type;
 
@@ -136,8 +138,8 @@ typedef struct arglist_struct ARGLIST;
 extern NODE *root;  /* the root of a parse tree */
 
 /* function prototypes */
-NODE *addnode(enum node_type);
-void freenode(NODE *);
+NODE *addnode (enum node_type);
+void free_all_nodes (void);
 ARGLIST *make_arglist (NODE *, ARGLIST *);
 
 unsigned int get_last_node_id (void);

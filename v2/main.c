@@ -1,7 +1,7 @@
 /*
    V2: main.c
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -37,6 +37,8 @@ main (void)
 	      get_last_node_id());
       print_node (root);
     }
+
+  free_all_nodes ();
 
   if (symbol_functions || symbol_variables || symbol_history)
     printf ("\n=== Symbol table ===\n");
