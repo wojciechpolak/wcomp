@@ -1,0 +1,18 @@
+global x = 4;
+global y;
+
+if (x > 1 && -y) /* optimize it to (-y) */
+{
+  print x;
+}
+else
+  print 99;
+
+if (x > 1 || -y) /* optimize it to (1) and remove
+                    dead conditional */
+{
+  print x;
+}
+else
+  print 99;
+

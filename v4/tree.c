@@ -194,7 +194,18 @@ static void
 print_unop (NODE *node)
 {
   printf ("\t NODE_UNOP");
-  printf ("\t opcode = %d", node->v.opcode);
+  printf ("\t opcode = ");
+
+  switch (node->v.opcode) {
+  case OPCODE_NEG:
+    printf ("OPCODE_NEG");
+    break;
+  case OPCODE_NOT:
+    printf ("OPCODE_NOT");
+    break;
+  default:
+    printf ("UNKNOWN OPCODE");
+  }
   fputc ('\n', stdout);
 }
 

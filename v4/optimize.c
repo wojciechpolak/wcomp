@@ -501,7 +501,7 @@ eval_binop_simple_logic (NODE *node)
 
   if (node->v.opcode == OPCODE_AND)
     {
-      /*  1 && BINOP = BINOP  */
+      /*  1 && (BINOP|UNOP) = (BINOP|UNOP)  */
       node->type  = right->type;
       node->left  = right->left;
       node->right = right->right;
@@ -509,8 +509,10 @@ eval_binop_simple_logic (NODE *node)
     }
   else if (node->v.opcode == OPCODE_OR)
     {
-      /*  1 || BINOP = 1  */
+      /*  1 || (BINOP|UNOP) = 1  */
       node->type  = NODE_CONST;
+      freenode (node->left);
+      freenode (node->right);
       node->left  = NULL;
       node->right = NULL;
       node->v.number = 1;
@@ -542,7 +544,7 @@ pass2_binop (NODE *node)
 	}
     }
   else if (left->type == NODE_CONST
-	   && right->type == NODE_BINOP)
+	   && (right->type == NODE_BINOP || right->type == NODE_UNOP))
     {
       if ((node->v.opcode == OPCODE_AND || node->v.opcode == OPCODE_OR)
 	  && left->v.number != 0)
