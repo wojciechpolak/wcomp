@@ -26,8 +26,8 @@
 #include "mm.h"
 
 NODE *root; /* the root of a parse tree */
-
 static unsigned int last_node_id;
+
 
 NODE *
 addnode (enum node_type type)
@@ -100,6 +100,104 @@ make_arglist (NODE *node, ARGLIST *next)
   x->next = next;
   return x;
 }
+
+
+/*
+   General routines to traverse the parse tree.
+*/
+
+/* prototype */
+static void traverse_node (NODE *, traverse_fp *);
+
+static void
+traverse_funcall (NODE *node, traverse_fp *fptab)
+{
+  ARGLIST *ptr;
+  for (ptr = node->v.funcall.args; ptr; ptr = ptr->next) 
+    traverse_node (ptr->node, fptab);
+}
+
+static void
+traverse_node (NODE *node, traverse_fp *fptab)
+{
+  if (!node)
+    return;
+
+  traverse_node (node->left, fptab);
+  traverse_node (node->right, fptab);
+
+  switch (node->type) {
+  case NODE_CALL:
+    traverse_funcall (node, fptab);
+    break;
+  case NODE_BINOP:
+  case NODE_UNOP:
+  case NODE_CONST:
+  case NODE_VAR:
+  case NODE_NOOP:
+    break;
+  case NODE_EXPR:
+    traverse_node (node->v.expr, fptab);
+    break;
+  default:
+    abort ();
+  }
+  if (fptab[node->type])
+    fptab[node->type](node);
+}
+
+static void
+traverse_stmt (NODE *node, traverse_fp *fptab)
+{
+  switch (node->type) {
+  case NODE_CALL:
+    traverse_funcall (node, fptab);
+    break; 
+  case NODE_ASGN:
+    traverse_node (node->v.asgn.expr, fptab);
+    break;
+  case NODE_EXPR:
+  case NODE_RETURN:
+  case NODE_PRINT:
+    traverse_node (node->v.expr, fptab);
+    break;
+  case NODE_JUMP:
+    break;
+  case NODE_COMPOUND:
+    traverse (node->v.expr, fptab);	  
+    break;
+  case NODE_ITERATION:
+    traverse_node (node->v.iteration.cond, fptab);
+    traverse (node->v.iteration.stmt, fptab);
+    break;
+  case NODE_CONDITION:
+    traverse_node (node->v.condition.cond, fptab);
+    traverse (node->v.condition.iftrue_stmt, fptab);
+    traverse (node->v.condition.iffalse_stmt, fptab);
+    break;
+  case NODE_VAR_DECL:
+    traverse_node (node->v.vardecl.expr, fptab);
+    break;
+  case NODE_FNC_DECL:
+    traverse (node->v.fncdecl.stmt, fptab);
+    break;
+  case NODE_NOOP:
+    break;
+  default:
+    abort ();
+  }
+
+  if (fptab[node->type]) 
+    fptab[node->type](node);
+}
+
+void
+traverse (NODE *node, traverse_fp *fptab)
+{
+  for (; node; node = node->right)
+    traverse_stmt (node, fptab);
+}
+
 
 /*
   All the functions below are designed to create
@@ -414,7 +512,7 @@ print_node (NODE *node)
     print_fnc_decl (node);
     break;
   default:
-    abort();
+    abort ();
   }
 
   if (!node->right) {

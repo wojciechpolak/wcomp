@@ -25,115 +25,16 @@
 #include "mm.h"
 #include "optimize.h"
 
-/* Generalized interface */
-typedef void (*optimize_fp)(NODE *);
-
-/* Prototypes */
-static void optimize (NODE *, optimize_fp *);
-static void pass2_binop (NODE *);
-static void run_optimize_node (NODE *, optimize_fp *);
-static NODE *mark_free (NODE *);
-
 extern int verbose;
 extern int optimize_level;
 
 static void
-optimize_funcall (NODE *node, optimize_fp *opttab)
-{
-  ARGLIST *ptr;
-  for (ptr = node->v.funcall.args; ptr; ptr = ptr->next) 
-    run_optimize_node (ptr->node, opttab);
-}
-
-/* General routines */
-static void
-run_optimize_node (NODE *node, optimize_fp *opttab)
-{
-  if (!node)
-    return;
-
-  run_optimize_node (node->left, opttab);
-  run_optimize_node (node->right, opttab);
-
-  switch (node->type) {
-  case NODE_CALL:
-    optimize_funcall (node, opttab);
-    break;
-  case NODE_BINOP:
-  case NODE_UNOP:
-  case NODE_CONST:
-  case NODE_VAR:
-  case NODE_NOOP:
-    break;
-  case NODE_EXPR:
-    run_optimize_node (node->v.expr, opttab);
-    break;
-  default:
-    abort();
-  }
-  if (opttab[node->type])
-    opttab[node->type](node);
-}
-
-static void
-run_optimize_stmt (NODE *node, optimize_fp *opttab)
-{
-  switch (node->type) {
-  case NODE_CALL:
-    optimize_funcall(node, opttab);
-    break; 
-  case NODE_ASGN:
-    run_optimize_node (node->v.asgn.expr, opttab);
-    break;
-  case NODE_EXPR:
-  case NODE_RETURN:
-  case NODE_PRINT:
-    run_optimize_node (node->v.expr, opttab);
-    break;
-  case NODE_JUMP:
-    break;
-  case NODE_COMPOUND:
-    optimize (node->v.expr, opttab);	  
-    break;
-  case NODE_ITERATION:
-    run_optimize_node (node->v.iteration.cond, opttab);
-    optimize (node->v.iteration.stmt, opttab);
-    break;
-  case NODE_CONDITION:
-    run_optimize_node (node->v.condition.cond, opttab);
-    optimize (node->v.condition.iftrue_stmt, opttab);
-    optimize (node->v.condition.iffalse_stmt, opttab);
-    break;
-  case NODE_VAR_DECL:
-    run_optimize_node (node->v.vardecl.expr, opttab);
-    break;
-  case NODE_FNC_DECL:
-    optimize (node->v.fncdecl.stmt, opttab);
-    break;
-  case NODE_NOOP:
-    break;
-  default:
-    abort();
-  }
-
-  if (opttab[node->type]) 
-    opttab[node->type](node);
-}
-
-static void
-optimize (NODE *node, optimize_fp *opttab)
-{
-  for (; node; node = node->right)
-    run_optimize_stmt (node, opttab);
-}
-
-static void
-optimize_pass (int n, NODE *node, optimize_fp *opttab)
+optimize_pass (int n, NODE *node, traverse_fp *fptab)
 {
   if (verbose)
     printf ("\n=== Optimization pass %d ===\n\n", n);
 
-  optimize (node, opttab);
+  traverse (node, fptab);
   sweep (mark_free (root));
 
   if (verbose) {
@@ -192,7 +93,7 @@ swap_nodes (NODE *node)
     break;
 
   default:
-    abort();
+    abort ();
   }
 }
 
@@ -220,7 +121,7 @@ invert_opcode (enum opcode_type op)
   case OPCODE_DIV:
     return OPCODE_MUL;
   default:
-    abort();
+    abort ();
   }
   /*NOTREACHED*/
   return 0;
@@ -362,7 +263,7 @@ pass1_binop (NODE *node)
   }
 }
 
-optimize_fp pass1_opttab[] = {
+traverse_fp pass1_fptab[] = {
   NULL,        /* NODE_NOOP */
   NULL,        /* NODE_UNOP */
   pass1_binop, /* NODE_BINOP */
@@ -384,7 +285,7 @@ optimize_fp pass1_opttab[] = {
 static void
 optimize_pass_1 (NODE *node)
 {
-  optimize_pass (1, node, pass1_opttab);
+  optimize_pass (1, node, pass1_fptab);
 }
 
 
@@ -443,7 +344,7 @@ eval_binop_const (NODE *node)
     break;
   case OPCODE_NEG:
   case OPCODE_NOT:
-    abort();
+    abort ();
   }
   freenode (left);
   freenode (right);
@@ -531,7 +432,7 @@ pass2_unop (NODE *node)
       node->v.number = ! operand->v.number;
       break;
     default:
-      abort();
+      abort ();
     }
     freenode (operand);
     optcnt++;
@@ -553,7 +454,7 @@ pass2_asgn (NODE *node)
     }
 }
 
-optimize_fp pass2_opttab[] = {
+traverse_fp pass2_fptab[] = {
   NULL,        /* NODE_NOOP */
   pass2_unop,  /* NODE_UNOP */
   pass2_binop, /* NODE_BINOP */
@@ -575,7 +476,7 @@ optimize_fp pass2_opttab[] = {
 static void
 optimize_pass_2 (NODE *node)
 {
-  optimize_pass (2, node, pass2_opttab);
+  optimize_pass (2, node, pass2_fptab);
 }
 
 
@@ -614,7 +515,7 @@ pass3_asgn (NODE *node)
   node->v.asgn.symbol->v.var->entry_point = node->v.asgn.expr;
 }
 
-optimize_fp pass3_opttab[] = {
+traverse_fp pass3_fptab[] = {
   NULL,           /* NODE_NOOP */
   NULL,           /* NODE_UNOP */
   NULL,           /* NODE_BINOP */
@@ -636,37 +537,7 @@ optimize_fp pass3_opttab[] = {
 static void
 optimize_pass_3 (NODE *node)
 {
-  optimize_pass (3, node, pass3_opttab);
-}
-
-
-/* Mark & sweep: check *all* nodes */
-
-optimize_fp mark_opttab[] = {
-  mark_node,     /* NODE_NOOP */
-  mark_node,     /* NODE_UNOP */
-  mark_node,     /* NODE_BINOP */
-  mark_node,     /* NODE_CONST */
-  mark_node,     /* NODE_VAR */
-  mark_node,     /* NODE_CALL */
-  mark_node,     /* NODE_ASGN */
-  mark_node,     /* NODE_EXPR */
-  mark_node,     /* NODE_RETURN */
-  mark_node,     /* NODE_PRINT */
-  mark_node,     /* NODE_JUMP */
-  mark_node,     /* NODE_COMPOUND  */
-  mark_node,     /* NODE_ITERATION */
-  mark_node,     /* NODE_CONDITION */
-  mark_node,     /* NODE_VAR_DECL */
-  mark_node      /* NODE_FNC_DECL */
-};
-
-static NODE *
-mark_free (NODE *root)
-{
-  tmp_memory_pool = NULL;
-  optimize (root, mark_opttab);
-  return tmp_memory_pool;
+  optimize_pass (3, node, pass3_fptab);
 }
 
 

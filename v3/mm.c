@@ -70,6 +70,33 @@ mark_node (NODE *node)
   mpool_append (&tmp_memory_pool, node);
 }
 
+traverse_fp mark_fptab[] = {
+  mark_node,  /* NODE_NOOP */
+  mark_node,  /* NODE_UNOP */
+  mark_node,  /* NODE_BINOP */
+  mark_node,  /* NODE_CONST */
+  mark_node,  /* NODE_VAR */
+  mark_node,  /* NODE_CALL */
+  mark_node,  /* NODE_ASGN */
+  mark_node,  /* NODE_EXPR */
+  mark_node,  /* NODE_RETURN */
+  mark_node,  /* NODE_PRINT */
+  mark_node,  /* NODE_JUMP */
+  mark_node,  /* NODE_COMPOUND  */
+  mark_node,  /* NODE_ITERATION */
+  mark_node,  /* NODE_CONDITION */
+  mark_node,  /* NODE_VAR_DECL */
+  mark_node   /* NODE_FNC_DECL */
+};
+
+NODE *
+mark_free (NODE *root)
+{
+  tmp_memory_pool = NULL;
+  traverse (root, mark_fptab);
+  return tmp_memory_pool;
+}
+
 void
 sweep (NODE *new_pool)
 {

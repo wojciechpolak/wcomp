@@ -28,6 +28,7 @@ extern NODE *tmp_memory_pool;
 void mpool_append (NODE **, NODE *);
 void mpool_remove (NODE **, NODE *);
 
+NODE *mark_free (NODE *);
 void mark_node (NODE *);
 void sweep (NODE *);
 
