@@ -28,6 +28,7 @@
 NODE *root; /* the root of a parse tree */
 
 static unsigned int last_node_id;
+unsigned int nodes_counter;
 
 NODE *
 addnode (enum node_type type)
@@ -47,7 +48,7 @@ addnode (enum node_type type)
     }
   memset (new, 0, sizeof(NODE));
 
-  new->node_id = ++last_node_id;
+  new->node_id = nodes_counter = ++last_node_id;
   new->type    = type;
   new->left    = NULL;
   new->right   = NULL;
@@ -65,6 +66,8 @@ freenode (NODE *node)
 
   mpool_remove (&memory_pool, node);
   mpool_append (&free_memory_pool, node);
+
+  nodes_counter--;
 }
 
 void
@@ -76,6 +79,7 @@ free_all_nodes (void)
     {
       next = p->memory_link;
       free (p);
+      nodes_counter--;
     }
   memory_pool = NULL;
 
@@ -85,6 +89,9 @@ free_all_nodes (void)
       free (p);
     }
   free_memory_pool = NULL;
+
+  if (nodes_counter)
+    printf ("Panic! %d node(s) not freed.\n", nodes_counter);
 }
 
 

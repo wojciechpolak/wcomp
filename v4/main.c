@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "symbol.h"
 #include "tree.h"
 #include "optimize.h"
@@ -67,13 +68,14 @@ main (int argc, char *argv[])
       if (verbose)
 	{
 	  printf ("=== The parse tree (%d nodes) ===\n\n",
-		  get_last_node_id ());
+		  nodes_counter);
 	  print_node (root);
 	}
       if (optimize_level > 0)
 	{
 	  optimize_tree (root);
-	  printf ("\n=== After optimization ===\n\n");
+	  printf ("\n=== After optimization (%d nodes) ===\n\n",
+		  nodes_counter);
 	  print_node (root);
 	}
     }

@@ -154,7 +154,7 @@ simple_swap (NODE *node)
 {
   NODE *p = node->left;
   if (verbose)
-    printf ("Swap in node %4.4lu...\n", node->node_id);
+    printf ("Swap in node %4.4lu\n", node->node_id);
   node->left = node->right;
   node->right = p;
 }
@@ -234,7 +234,7 @@ transpose0 (NODE *node)
   enum opcode_type op, rop;
 
   if (verbose)
-    printf ("Transpose, node %4.4lu...\n", node->node_id);
+    printf ("Transpose, node %4.4lu\n", node->node_id);
 
   op = node->v.opcode;
   rop = right->v.opcode;
@@ -305,7 +305,7 @@ transpose_left0 (NODE *node)
       enum opcode_type op;
 
       if (verbose)
-	printf ("Transpose, node %4.4lu...\n", node->node_id);
+	printf ("Transpose, node %4.4lu\n", node->node_id);
 
       op = node->v.opcode;
       node->v.opcode = left->v.opcode;
@@ -399,7 +399,7 @@ eval_binop_const (NODE *node)
   NODE *right = node->right;
 
   if (verbose)
-    printf ("Optimizing node %4.4lu (BINOP)...\n", node->node_id);
+    printf ("Optimizing node %4.4lu (BINOP)\n", node->node_id);
 
   switch (node->v.opcode) {
   case OPCODE_ADD:
@@ -459,35 +459,62 @@ eval_binop_simple (NODE *node)
   NODE *right = node->right;
 
   if (verbose)
-    printf ("Optimizing node %4.4lu (BINOP)...\n", node->node_id);
+    printf ("Optimizing node %4.4lu (BINOP)\n", node->node_id);
 
   if (node->v.opcode == OPCODE_MUL)
     {
-      /*  x*0 = 0  */
       if (left->v.number == 0)
 	{
+	  /*  0*x = 0  */
 	  node->type = NODE_CONST;
 	  node->v.number = 0;
 	}
-      /*  x*1 = x  */
       else if (left->v.number == 1)
 	{
+	  /*  1*x = x  */
 	  node->type = NODE_VAR;
 	  node->v.symbol = right->v.symbol;
 	}
     }
   else if (node->v.opcode == OPCODE_ADD)
     {
-      /*  x+0 = x  */
       if (left->v.number == 0)
 	{
+	  /*  0+x = x  */
 	  node->type = NODE_VAR;
 	  node->v.symbol = right->v.symbol;
 	}
     }
+
   freenode (left);
   freenode (right);
   node->left = node->right = NULL;
+}
+
+static void
+eval_binop_simple_logic (NODE *node)
+{
+  NODE *right = node->right;
+
+  if (verbose)
+    printf ("Optimizing node %4.4lu (BINOP)\n", node->node_id);
+
+  if (node->v.opcode == OPCODE_AND)
+    {
+      /*  1 && BINOP = BINOP  */
+      node->type  = right->type;
+      node->left  = right->left;
+      node->right = right->right;
+      node->v.opcode = right->v.opcode;
+    }
+  else if (node->v.opcode == OPCODE_OR)
+    {
+      /*  1 || BINOP = 1  */
+      node->type  = NODE_CONST;
+      node->left  = NULL;
+      node->right = NULL;
+      node->v.number = 1;
+    }
 }
 
 static void
@@ -501,7 +528,8 @@ pass2_binop (NODE *node)
     {
       eval_binop_const (node);
     }
-  else if (right->type == NODE_VAR && left->type == NODE_CONST)
+  else if (left->type == NODE_CONST
+	   && right->type == NODE_VAR)
     {
       if (node->v.opcode == OPCODE_ADD && left->v.number == 0)
 	{
@@ -511,6 +539,15 @@ pass2_binop (NODE *node)
 	       && (left->v.number == 0 || left->v.number == 1))
 	{
 	  eval_binop_simple (node);
+	}
+    }
+  else if (left->type == NODE_CONST
+	   && right->type == NODE_BINOP)
+    {
+      if ((node->v.opcode == OPCODE_AND || node->v.opcode == OPCODE_OR)
+	  && left->v.number != 0)
+	{
+	  eval_binop_simple_logic (node);
 	}
     }
 }
@@ -545,7 +582,7 @@ pass2_asgn (NODE *node)
       && node->v.asgn.symbol == node->v.asgn.expr->v.expr->v.symbol)
     {
       if (verbose)
-	printf ("Optimizing node %4.4lu (ASGN)...\n", node->node_id);
+	printf ("Optimizing node %4.4lu (ASGN)\n", node->node_id);
 
       freenode (node->v.asgn.expr);
       node->v.asgn.expr = NULL;
@@ -593,7 +630,7 @@ pass3_var (NODE *node)
   if (VAR_IS_CONST (s))
     {
       if (verbose)
-	printf ("Optimizing node %4.4lu (VAR)...\n", node->node_id);
+	printf ("Optimizing node %4.4lu (VAR)\n", node->node_id);
 
       node->v.expr = NULL;
       node->v.number = s->v.var->entry_point->v.expr->v.number;
@@ -676,16 +713,16 @@ optimize_fp pass4a_opttab[] = {
 static void
 pass4b_vardecl (NODE *node)
 {
-  if (node->v.vardecl.symbol->ref_count == 0) {
-    /* FIXME: Recursively free node->v.vardecl.expr */
-    if (verbose)
-      printf ("Removing declaration of unused %s variable %s (line %d)\n",
-	      node->v.vardecl.symbol->v.var->qualifier == QUA_GLOBAL ?
+  if (node->v.vardecl.symbol->ref_count == 0)
+    {
+      if (verbose)
+	printf ("Removing unused %s variable %s (node %4.4lu)\n",
+		node->v.vardecl.symbol->v.var->qualifier == QUA_GLOBAL ?
 	        "global" : "automatic",
-	      node->v.vardecl.symbol->name,
-	      node->v.vardecl.symbol->sourceline);
-    node->type = NODE_NOOP;
-  }
+		node->v.vardecl.symbol->name,
+		node->node_id);
+      node->type = NODE_NOOP;
+    }
 }
 
 optimize_fp pass4b_opttab[] = {
@@ -725,13 +762,23 @@ pass5_condition (NODE *node)
   if (cond->v.expr->type == NODE_CONST) {
     if (cond->v.expr->v.number == 1) /* TRUE */
       {
-	printf ("PASS5: %4.4lu is TRUE const\n", node->node_id); /* tmp */
-	/* FIXME: Recursively free iffalse_stmt */
+	if (verbose)
+	  printf ("Eliminating conditional, node %4.4lu (always true)\n",
+		  node->node_id);
+	node->v.condition.iftrue_stmt->right = node->right;
+	node->right = node->v.condition.iftrue_stmt;
+	node->type = NODE_NOOP;
+	// node->v.condition.iffalse_stmt = NULL;
+	// freenode (node->v.condition.iffalse_stmt);
       }
     else if (cond->v.expr->v.number == 0) /* FALSE */
       {
-	printf ("PASS5: %4.4lu is FALSE const\n", node->node_id); /* tmp */
-	/* FIXME: Recursively free iftrue_stmt */
+	if (verbose)
+	  printf ("Eliminating conditional, node %4.4lu (always false)\n",
+		  node->node_id);
+	node->v.condition.iffalse_stmt->right = node->right;
+	node->right = node->v.condition.iffalse_stmt;
+	node->type = NODE_NOOP;
       }
   }
 }
@@ -754,6 +801,12 @@ optimize_fp pass5_opttab[] = {
   NULL,           /* NODE_VAR_DECL */
   NULL,           /* NODE_FNC_DECL */
 };
+
+static void
+optimize_pass_5 (NODE *node)
+{
+  optimize_pass (5, node, pass5_opttab);
+}
 
 
 /* Mark & sweep: check *all* nodes */
@@ -801,8 +854,9 @@ optimize_tree (NODE *root)
   } while (optcnt);
 
   if (optimize_level > 1)
-    optimize_pass_4 (root);
-
-  optimize_pass (5, root, pass5_opttab);
+    {
+      optimize_pass_4 (root);
+      optimize_pass_5 (root);
+    }
 }
 
