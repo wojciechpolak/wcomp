@@ -661,9 +661,12 @@ static void
 sweep (NODE *new_pool)
 {
   /* Append memory_pool to free_memory_pool */
-  NODE *p;
-  for (p = memory_pool; p; p = p->memory_link)
-    list_append (&free_memory_pool, p);
+  NODE *p, *next;
+  for (p = memory_pool; p; p = next)
+    {
+      next = p->memory_link;
+      list_append (&free_memory_pool, p);
+    }
 
   memory_pool = new_pool;
   printf ("sweeping!\n");
