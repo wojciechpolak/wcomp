@@ -1,7 +1,7 @@
 /*
    V3: optimize.h
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 #ifndef _OPTIMIZE_H
 #define _OPTIMIZE_H
 
-NODE *optimize_auto (NODE *);
 void optimize_tree (NODE *);
 
 #endif /* _OPTIMIZE_H */

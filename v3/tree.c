@@ -1,7 +1,7 @@
 /*
    V3: tree.c
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -178,21 +178,19 @@ static void
 print_call (NODE *node)
 {
   ARGLIST *ptr;
-	
+
   printf ("\t NODE_CALL");
   printf ("\t node =");
   print_node_id (node->v.funcall.symbol->v.fnc->entry_point);
   printf (", args = ");
+
   for (ptr = node->v.funcall.args; ptr; ptr = ptr->next)
-    {
-      printf ("%4.4lu ", ptr->node->node_id);
-    }
+    printf ("%4.4lu ", ptr->node->node_id);
+
   fputc ('\n', stdout);
 
   for (ptr = node->v.funcall.args; ptr; ptr = ptr->next)
-    {
-      print_node (ptr->node);
-    }
+    print_node (ptr->node);
 }
 
 static void

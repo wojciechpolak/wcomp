@@ -1,7 +1,7 @@
 /*
    V3: symbol.c
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,9 +38,6 @@ putsym (SYMBOL **s, const char *name, enum symbol_type type)
 {
   SYMBOL *new;
 
-/*   if (getsym (*s, name)) */ /* FIXME */
-/*     return NULL; */
-
   new = (SYMBOL *)malloc (sizeof(SYMBOL));
   if (!new)
     exit (EXIT_FAILURE);
@@ -48,7 +45,7 @@ putsym (SYMBOL **s, const char *name, enum symbol_type type)
   new->name = strdup (name);
   new->type = type;
   new->sourceline = input_line_num;
-
+  
   if (type == SYMBOL_VAR)
     {
       variable_t *var;
@@ -155,13 +152,10 @@ delsym_level (SYMBOL **s, int level)
 	  else
 	    prev->next = next;
 
-	  /*
-	    Actually, here we should free the unused
-	    symbol, but for an educational purposes
-	    we just copy it to the historical buffer.
-	  */
+	  /* NOTE: Do not free the symbol, since it may be referenced
+	     to by the code */
 
-	  copy_to_history (p); /* instead of free_symbol(p) */
+	  copy_to_history (p); 
 	}
       else
 	prev = p;

@@ -1,7 +1,7 @@
 /*
    V3: optimize.c
 
-   Copyright (C) 2003 Wojciech Polak and Sergey Poznyakoff.
+   Copyright (C) 2003, 2004 Wojciech Polak and Sergey Poznyakoff.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -573,7 +573,7 @@ optimize_pass_2 (NODE *node)
 }
 
 
-/* Pass 3: ? */
+/* Pass 3: Substitution of constant variables */
 
 #define VAR_IS_CONST(s) (s && s->v.var->entry_point && \
                          s->v.var->entry_point->v.expr->type == \
@@ -582,7 +582,7 @@ optimize_pass_2 (NODE *node)
 static void
 pass3_var (NODE *node)
 {
-  SYMBOL *s = getsym (symbol_variables, node->v.symbol->name);
+  SYMBOL *s = node->v.symbol;
 
   if (VAR_IS_CONST (s))
     {
@@ -592,41 +592,45 @@ pass3_var (NODE *node)
       node->v.expr = NULL;
       node->v.number = s->v.var->entry_point->v.expr->v.number;
       node->type = NODE_CONST;
+      optcnt++;
     }
 }
 
+static void
+pass3_var_decl (NODE *node)
+{
+  node->v.vardecl.symbol->v.var->entry_point = node->v.vardecl.expr;
+}
+
+static void
+pass3_asgn (NODE *node)
+{
+  node->v.asgn.symbol->v.var->entry_point = node->v.asgn.expr;
+}
+
 optimize_fp pass3_opttab[] = {
-  NULL,        /* NODE_NOOP */
-  NULL,        /* NODE_UNOP */
-  NULL,        /* NODE_BINOP */
-  NULL,        /* NODE_CONST */
-  pass3_var,   /* NODE_VAR */
-  NULL,        /* NODE_CALL */
-  NULL,        /* NODE_ASGN */
-  NULL,        /* NODE_EXPR */
-  NULL,        /* NODE_RETURN */
-  NULL,        /* NODE_PRINT */
-  NULL,        /* NODE_JUMP */
-  NULL,        /* NODE_COMPOUND  */
-  NULL,        /* NODE_ITERATION */
-  NULL,        /* NODE_CONDITION */
-  NULL,        /* NODE_VAR_DECL */
-  NULL,        /* NODE_FNC_DECL */
+  NULL,           /* NODE_NOOP */
+  NULL,           /* NODE_UNOP */
+  NULL,           /* NODE_BINOP */
+  NULL,           /* NODE_CONST */
+  pass3_var,      /* NODE_VAR */
+  NULL,           /* NODE_CALL */
+  pass3_asgn,     /* NODE_ASGN */
+  NULL,           /* NODE_EXPR */
+  NULL,           /* NODE_RETURN */
+  NULL,           /* NODE_PRINT */
+  NULL,           /* NODE_JUMP */
+  NULL,           /* NODE_COMPOUND  */
+  NULL,           /* NODE_ITERATION */
+  NULL,           /* NODE_CONDITION */
+  pass3_var_decl, /* NODE_VAR_DECL */
+  NULL,           /* NODE_FNC_DECL */
 };
 
 static void
 optimize_pass_3 (NODE *node)
 {
   optimize_pass (3, node, pass3_opttab);
-  optimize_pass_2 (root);
-}
-
-NODE *
-optimize_auto (NODE *node)
-{
-  if (optimize_level > 0)
-    optimize_pass (3, node, pass3_opttab);
-  return node;
 }
 
 
@@ -634,14 +638,13 @@ optimize_auto (NODE *node)
 void
 optimize_tree (NODE *root)
 {
+  if (optimize_level == 0)
+    return;
+  
   do {
     optimize_pass_1 (root);
     optcnt = 0;
     optimize_pass_2 (root);
-  } while (optcnt);
-
-  do {
-    optcnt = 0;
     optimize_pass_3 (root);
   } while (optcnt);
 }

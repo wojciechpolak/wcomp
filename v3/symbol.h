@@ -1,7 +1,7 @@
 /*
    V3: symbol.h
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -55,6 +55,7 @@ struct symbol_struct
   char *name;                       /* name of symbol */
   enum symbol_type type;            /* type of symbol */
   size_t sourceline;                /* source code line number */
+
   union {
     struct variable_struct *var;    /* pointer to VAR struct */
     struct function_struct *fnc;    /* pointer to FNC struct */

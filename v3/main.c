@@ -1,7 +1,7 @@
 /*
    V3: main.c
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,31 +19,47 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "symbol.h"
 #include "tree.h"
 #include "optimize.h"
 
-extern int parse(void);
+extern int parse (void);
+extern void open_file (char *);
 
 int verbose;
 int errcnt;             /* general error counter */
-int optimize_level = 1; /* optimization level */
+int optimize_level = 2; /* optimization level */
 
 int
 main (int argc, char *argv[])
 {
   int status;
-  int param = 1;
 
-  while (argc > 1 && param < argc) {
-    if (!strcmp (argv[param], "-v"))
-	verbose = 1;
-    if (!strcmp (argv[param], "-O0"))
-	optimize_level = 0;
-    param++;
+  while ((status = getopt (argc, argv, "vO:")) != EOF)
+  {
+    switch (status) {
+    case 'v':
+      verbose++;
+      break;
+
+    case 'O':
+      optimize_level = atoi (optarg);
+      break;
+    }
   }
 
+  if (argc - optind > 0)
+    {
+      if (argc - optind > 1) {
+	fprintf (stderr, "%s: too many arguments\n", argv[0]);
+	return 1;
+      }
+      open_file (argv[optind]);
+    }
+	
   status = parse ();
 
   if (status == 0 && errcnt == 0)
@@ -51,7 +67,7 @@ main (int argc, char *argv[])
       if (verbose)
 	{
 	  printf ("=== The parse tree (%d nodes) ===\n\n",
-		  get_last_node_id());
+		  get_last_node_id ());
 	  print_node (root);
 	}
       if (optimize_level > 0)
@@ -62,26 +78,29 @@ main (int argc, char *argv[])
 	}
     }
 
-  if (symbol_functions || symbol_variables || symbol_history)
-    printf ("\n=== Symbol table ===\n");
+  if (verbose)
+    {
+      if (symbol_functions || symbol_variables || symbol_history)
+	printf ("\n=== Symbol table ===\n");
 
-  if (symbol_functions)
-    {
-      printf ("* Functions:\n");
-      print_all_symbols (symbol_functions);
-      free_all_symbols (&symbol_functions);
-    }
-  if (symbol_variables)
-    {
-      printf ("* Variables (present):\n");
-      print_all_symbols (symbol_variables);
-      free_all_symbols (&symbol_variables);
-    }
-  if (symbol_history)
-    {
-      printf ("* Variables (past):\n");
-      print_all_symbols (symbol_history);
-      free_all_symbols (&symbol_history);
+      if (symbol_functions)
+	{
+	  printf ("* Functions:\n");
+	  print_all_symbols (symbol_functions);
+	  free_all_symbols (&symbol_functions);
+	}
+      if (symbol_variables)
+	{
+	  printf ("* Variables (present):\n");
+	  print_all_symbols (symbol_variables);
+	  free_all_symbols (&symbol_variables);
+	}
+      if (symbol_history)
+	{
+	  printf ("* Variables (past):\n");
+	  print_all_symbols (symbol_history);
+	  free_all_symbols (&symbol_history);
+	}
     }
 
   if (errcnt)

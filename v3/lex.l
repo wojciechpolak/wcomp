@@ -2,7 +2,7 @@
 /*
    V3: lex.l
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -88,18 +88,29 @@ extern int yyerror(const char *s);
 int
 yywrap (void)
 {
-	return 1;
+  return 1;
 }
 
 static void
 stray_character_error (void)
 {
-	char buf[sizeof("stray character 'xxxx'")];
+  char buf[sizeof("stray character 'xxxx'")];
 
-	if (isprint(yytext[0]) && !isspace(yytext[0])) 
-		sprintf(buf, "stray character '%c'", yytext[0]);
-	else
-		sprintf(buf, "stray character '\\%03o'", yytext[0]);
-        yyerror(buf);
+  if (isprint (yytext[0]) && !isspace(yytext[0])) 
+    sprintf (buf, "stray character '%c'", yytext[0]);
+  else
+    sprintf (buf, "stray character '\\%03o'", yytext[0]);
+  yyerror (buf);
+}
+
+void
+open_file (char *filename)
+{
+  yyin = fopen (filename, "r");
+  if (!yyin) {
+    fprintf (stderr, "Cannot open file ");
+    perror (filename);
+    exit (EXIT_FAILURE);
+  }
 }
 

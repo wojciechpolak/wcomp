@@ -1,7 +1,7 @@
 /*
    V3: tree.h
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -137,13 +137,13 @@ typedef struct arglist_struct ARGLIST;
 extern NODE *root;  /* the root of a parse tree */
 
 /* function prototypes */
-NODE *addnode(enum node_type);
-void freenode(NODE *);
+NODE *addnode (enum node_type);
+void freenode (NODE *);
 ARGLIST *make_arglist (NODE *, ARGLIST *);
 
 unsigned int get_last_node_id (void);
 void print_tree (NODE *);
-void print_node(NODE *);
+void print_node (NODE *);
 
 #endif /* not _TREE_H */
 

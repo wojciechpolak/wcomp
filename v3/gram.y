@@ -2,7 +2,7 @@
 /*
    V3: gram.y
 
-   Copyright (C) 2003 Wojciech Polak.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@
 #include "tree.h"
 #include "optimize.h"
 
-extern int yylex(void);
-int yyerror(const char *);
+extern int yylex (void);
+int yyerror (const char *);
 void parse_error (const char *, ...);
 
 extern char *yytext;
@@ -136,13 +136,10 @@ variable_declaration
                {
                   SYMBOL *s = putsym (&symbol_variables, $2, SYMBOL_VAR);
                   if (s)
-		  {
                     s->v.var->qualifier = $1;
-                    s->v.var->entry_point = $3;
-		  }  
 
                   $$ = addnode (NODE_VAR_DECL);
-		  $$->v.vardecl.symbol = s;
+                  $$->v.vardecl.symbol = s;
                   $$->v.vardecl.expr = $3;
                }
              ;
@@ -174,8 +171,6 @@ assignment_statement
                {
                  $$ = addnode (NODE_ASGN);
                  $$->v.asgn.symbol = $1->v.symbol;
-                 if ($$->v.asgn.symbol)
-                   $$->v.asgn.symbol->v.var->entry_point = optimize_auto ($3);
                  $$->v.asgn.expr = $3;
                }
              ;
@@ -245,7 +240,7 @@ compound_statement
              : lbrace statement_list rbrace
                {
                   $$ = addnode (NODE_COMPOUND);
-                  $$->v.expr = optimize_auto ($2.head);
+                  $$->v.expr = $2.head;
                   delsym_level (&symbol_variables, nesting_level+1);
                }
              ;
