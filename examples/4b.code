@@ -1,12 +1,12 @@
 global x = 4;
 global y = 4;
 
-if (x > 1 && x == y) /* TRUE */
+if (x > 1 && x != y) /* FALSE */
 {
   print x;
   print y;
 }
 else
-  print 99;
+ print 99;
 
 print 1;
