@@ -31,6 +31,11 @@ static void optimize (NODE *, optimize_fp *);
 static void pass2_binop (NODE *);
 static void run_optimize_node (NODE *node, optimize_fp *opttab);
 
+void list_append (NODE **, NODE *);
+void list_remove (NODE **, NODE *);
+static NODE *mark_free (NODE *);
+static void sweep (NODE *);
+
 extern int verbose;
 extern int optimize_level;
 
@@ -129,7 +134,10 @@ optimize_pass (int n, NODE *node, optimize_fp *opttab)
 {
   if (verbose)
     printf ("\n=== Optimization pass %d ===\n\n", n);
+
   optimize (node, opttab);
+  sweep (mark_free (root));
+
   if (verbose) {
     printf ("\n=== After optimization pass %d ===\n\n", n); 
     print_node (node);
@@ -631,6 +639,61 @@ static void
 optimize_pass_3 (NODE *node)
 {
   optimize_pass (3, node, pass3_opttab);
+}
+
+
+/* Mark & Sweep */
+
+extern NODE *memory_pool;
+extern NODE *free_memory_pool;
+static NODE *tmp_memory_pool;
+
+static void
+mark_node (NODE *node)
+{
+  list_remove (&memory_pool, node);
+  list_append (&tmp_memory_pool, node);
+
+  printf ("marking node %4.4lu (%p)\n", node->node_id, node);
+}
+
+static void
+sweep (NODE *new_pool)
+{
+  /* Append memory_pool to free_memory_pool */
+  NODE *p;
+  for (p = memory_pool; p; p = p->memory_link)
+    list_append (&free_memory_pool, p);
+
+  memory_pool = new_pool;
+  printf ("sweeping!\n");
+}
+
+optimize_fp mark_opttab[] = {
+  mark_node,     /* NODE_NOOP */
+  mark_node,     /* NODE_UNOP */
+  mark_node,     /* NODE_BINOP */
+  mark_node,     /* NODE_CONST */
+  mark_node,     /* NODE_VAR */
+  mark_node,     /* NODE_CALL */
+  mark_node,     /* NODE_ASGN */
+  mark_node,     /* NODE_EXPR */
+  mark_node,     /* NODE_RETURN */
+  mark_node,     /* NODE_PRINT */
+  mark_node,     /* NODE_JUMP */
+  mark_node,     /* NODE_COMPOUND  */
+  mark_node,     /* NODE_ITERATION */
+  mark_node,     /* NODE_CONDITION */
+  mark_node,     /* NODE_VAR_DECL */
+  mark_node      /* NODE_FNC_DECL */
+};
+
+static NODE *
+mark_free (NODE *root)
+{
+  tmp_memory_pool = NULL;
+  optimize (root, mark_opttab);
+  return tmp_memory_pool;
 }
 
 
