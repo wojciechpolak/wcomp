@@ -227,7 +227,7 @@ print_all_symbols (SYMBOL *s)
 void
 compute_stack_and_data (void)
 {
-  off_t rel = -1;
+  off_t rel = 1;
   SYMBOL *s = symbol_functions;
 
   /* function parameters */
@@ -246,7 +246,7 @@ compute_stack_and_data (void)
 
   for (; s && s->type == SYMBOL_VAR; s = s->next)
     {
-      s->v.var->rel_address = -1 * rel--; /* positive */
+      s->v.var->rel_address = rel++;
     }
 }
 
