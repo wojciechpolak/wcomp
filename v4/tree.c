@@ -1,5 +1,5 @@
 /*
-   V3: tree.c
+   V4: tree.c
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 
@@ -21,9 +21,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "tree.h"
+#include "mm.h"
 
 NODE *root; /* the root of a parse tree */
+
 static unsigned int last_node_id;
 
 NODE *
@@ -31,9 +34,17 @@ addnode (enum node_type type)
 {
   NODE *new;
 
-  new = (NODE *)malloc (sizeof(NODE));
-  if (!new)
-    exit (EXIT_FAILURE);
+  if (free_memory_pool)
+    {
+      new = free_memory_pool;
+      free_memory_pool = free_memory_pool->memory_link;
+    }
+  else
+    {
+      new = (NODE *)malloc (sizeof(NODE));
+      if (!new)
+	exit (EXIT_FAILURE);
+    }
   memset (new, 0, sizeof(NODE));
 
   new->node_id = ++last_node_id;
@@ -41,19 +52,41 @@ addnode (enum node_type type)
   new->left    = NULL;
   new->right   = NULL;
 
+  new->memory_link = memory_pool;
+  memory_pool = new;
   return new;
 }
 
 void
 freenode (NODE *node)
 {
-  /* postorder */
-  if (node) {
-    freenode (node->left);
-    freenode (node->right);
-    free (node);
-  }
+  /* Should remove the node from memory_pool and append
+     (or prepend) it to free_memory_pool */
+
+  mpool_remove (&memory_pool, node);
+  mpool_append (&free_memory_pool, node);
 }
+
+void
+free_all_nodes (void)
+{
+  NODE *p, *next;
+
+  for (p = memory_pool; p; p = next)
+    {
+      next = p->memory_link;
+      free (p);
+    }
+  memory_pool = NULL;
+
+  for (p = free_memory_pool; p; p = next)
+    {
+      next = p->memory_link;
+      free (p);
+    }
+  free_memory_pool = NULL;
+}
+
 
 ARGLIST *
 make_arglist (NODE *node, ARGLIST *next)

@@ -1,5 +1,5 @@
 /*
-   V3: main.c
+   V4: main.c
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 
@@ -77,6 +77,8 @@ main (int argc, char *argv[])
 	  print_node (root);
 	}
     }
+
+  free_all_nodes ();
 
   if (verbose)
     {

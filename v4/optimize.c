@@ -1,7 +1,7 @@
 /*
    V4: optimize.c
 
-   Copyright (C) 2003, 2004 Wojciech Polak and Sergey Poznyakoff.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "tree.h"
+#include "mm.h"
 #include "optimize.h"
 
 /* Generalized interface */
@@ -29,7 +31,8 @@ typedef void (*optimize_fp)(NODE *);
 /* Prototypes */
 static void optimize (NODE *, optimize_fp *);
 static void pass2_binop (NODE *);
-static void run_optimize_node (NODE *node, optimize_fp *opttab);
+static void run_optimize_node (NODE *, optimize_fp *);
+static NODE *mark_free (NODE *);
 
 extern int verbose;
 extern int optimize_level;
@@ -129,7 +132,10 @@ optimize_pass (int n, NODE *node, optimize_fp *opttab)
 {
   if (verbose)
     printf ("\n=== Optimization pass %d ===\n\n", n);
+
   optimize (node, opttab);
+  sweep (mark_free (root));
+
   if (verbose) {
     printf ("\n=== After optimization pass %d ===\n\n", n); 
     print_node (node);
@@ -439,8 +445,8 @@ eval_binop_const (NODE *node)
   case OPCODE_NOT:
     abort();
   }
-  free (left);
-  free (right);
+  freenode (left);
+  freenode (right);
   node->left = node->right = NULL;
   node->type = NODE_CONST;
   optcnt++;
@@ -479,8 +485,8 @@ eval_binop_simple (NODE *node)
 	  node->v.symbol = right->v.symbol;
 	}
     }
-  free (left);
-  free (right);
+  freenode (left);
+  freenode (right);
   node->left = node->right = NULL;
 }
 
@@ -527,7 +533,7 @@ pass2_unop (NODE *node)
     default:
       abort();
     }
-    free (operand);
+    freenode (operand);
     optcnt++;
   }
 }
@@ -541,7 +547,7 @@ pass2_asgn (NODE *node)
       if (verbose)
 	printf ("Optimizing node %4.4lu (ASGN)...\n", node->node_id);
 
-      free (node->v.asgn.expr);
+      freenode (node->v.asgn.expr);
       node->v.asgn.expr = NULL;
       node->type = NODE_NOOP;
     }
@@ -748,6 +754,36 @@ optimize_fp pass5_opttab[] = {
   NULL,           /* NODE_VAR_DECL */
   NULL,           /* NODE_FNC_DECL */
 };
+
+
+/* Mark & sweep: check *all* nodes */
+
+optimize_fp mark_opttab[] = {
+  mark_node,     /* NODE_NOOP */
+  mark_node,     /* NODE_UNOP */
+  mark_node,     /* NODE_BINOP */
+  mark_node,     /* NODE_CONST */
+  mark_node,     /* NODE_VAR */
+  mark_node,     /* NODE_CALL */
+  mark_node,     /* NODE_ASGN */
+  mark_node,     /* NODE_EXPR */
+  mark_node,     /* NODE_RETURN */
+  mark_node,     /* NODE_PRINT */
+  mark_node,     /* NODE_JUMP */
+  mark_node,     /* NODE_COMPOUND  */
+  mark_node,     /* NODE_ITERATION */
+  mark_node,     /* NODE_CONDITION */
+  mark_node,     /* NODE_VAR_DECL */
+  mark_node      /* NODE_FNC_DECL */
+};
+
+static NODE *
+mark_free (NODE *root)
+{
+  tmp_memory_pool = NULL;
+  optimize (root, mark_opttab);
+  return tmp_memory_pool;
+}
 
 
 /* Entry point */

@@ -28,8 +28,8 @@ BFLAGS = -d -v -t
 
 all: v3
 
-v3: lex.yy.c gram.tab.c symbol.o tree.o optimize.o main.o
-	$(CC) $(CFLAGS) -o $(OUT) main.o symbol.o tree.o \
+v3: lex.yy.c gram.tab.c mm.o symbol.o tree.o optimize.o main.o
+	$(CC) $(CFLAGS) -o $(OUT) main.o mm.o symbol.o tree.o \
 	optimize.o lex.yy.c gram.tab.c
 
 lex.yy.c: lex.l
@@ -37,6 +37,9 @@ lex.yy.c: lex.l
 
 gram.tab.c: gram.y
 	$(BISON) $(BFLAGS) gram.y
+
+mm.o: mm.c mm.h
+	$(CC) $(CFLAGS) -c mm.c
 
 symbol.o: symbol.c symbol.h
 	$(CC) $(CFLAGS) -c symbol.c

@@ -21,55 +21,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "tree.h"
+#include "mm.h"
 
 NODE *root; /* the root of a parse tree */
-NODE *memory_pool;
-NODE *free_memory_pool;
 
 static unsigned int last_node_id;
-
-static void
-list_print (NODE *head)
-{
-  NODE *p;
-  for (p = head; p; p = p->memory_link)
-    printf ("%p, ", p);
-  printf ("\n");
-}
-
-void
-list_append (NODE **head, NODE *p)
-{
-  p->memory_link = *head;
-  *head = p;
-}
-
-/* removes without freeing! */
-void
-list_remove (NODE **head, NODE *r)
-{
-  NODE *p, *prev = NULL;
-
-  if (!*head)
-    return;
-
-  p = *head;
-  while (p)
-    {
-      NODE *next = p->memory_link;
-      if (p == r)
-	{
-	  if (!prev)
-	    *head = next;
-	  else
-	    prev->memory_link = next;
-	}
-      else
-	prev = p;
-      p = next;
-    }
-}
 
 NODE *
 addnode (enum node_type type)
@@ -80,14 +38,12 @@ addnode (enum node_type type)
     {
       new = free_memory_pool;
       free_memory_pool = free_memory_pool->memory_link;
-      printf ("reclaiming node %4.4lu (%p)\n", (long)last_node_id+1, new);
     }
   else
     {
       new = (NODE *)malloc (sizeof(NODE));
       if (!new)
 	exit (EXIT_FAILURE);
-      printf ("allocating node %4.4lu (%p)\n", (long)last_node_id+1, new);
     }
   memset (new, 0, sizeof(NODE));
 
@@ -102,15 +58,13 @@ addnode (enum node_type type)
 }
 
 void
-node_free (NODE *node)
+freenode (NODE *node)
 {
   /* Should remove the node from memory_pool and append
      (or prepend) it to free_memory_pool */
 
-  list_remove (&memory_pool, node);
-  list_append (&free_memory_pool, node);
-
-  printf ("moving node %4.4lu (%p) to fmp\n", node->node_id, node);
+  mpool_remove (&memory_pool, node);
+  mpool_append (&free_memory_pool, node);
 }
 
 void
@@ -121,7 +75,6 @@ free_all_nodes (void)
   for (p = memory_pool; p; p = next)
     {
       next = p->memory_link;
-      printf ("freeing node %4.4lu (%p)\n", p->node_id, p);
       free (p);
     }
   memory_pool = NULL;
@@ -130,7 +83,6 @@ free_all_nodes (void)
     {
       next = p->memory_link;
       free (p);
-      printf ("freeing node %4.4lu (%p)\n", p->node_id, p);
     }
   free_memory_pool = NULL;
 }

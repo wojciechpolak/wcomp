@@ -1,7 +1,7 @@
 /*
    V3: optimize.c
 
-   Copyright (C) 2003, 2004 Wojciech Polak and Sergey Poznyakoff.
+   Copyright (C) 2003, 2004 Wojciech Polak.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "tree.h"
+#include "mm.h"
 #include "optimize.h"
 
 /* Generalized interface */
@@ -29,12 +31,8 @@ typedef void (*optimize_fp)(NODE *);
 /* Prototypes */
 static void optimize (NODE *, optimize_fp *);
 static void pass2_binop (NODE *);
-static void run_optimize_node (NODE *node, optimize_fp *opttab);
-
-void list_append (NODE **, NODE *);
-void list_remove (NODE **, NODE *);
+static void run_optimize_node (NODE *, optimize_fp *);
 static NODE *mark_free (NODE *);
-static void sweep (NODE *);
 
 extern int verbose;
 extern int optimize_level;
@@ -139,7 +137,7 @@ optimize_pass (int n, NODE *node, optimize_fp *opttab)
   sweep (mark_free (root));
 
   if (verbose) {
-    printf ("\n=== After optimization pass %d ===\n\n", n); 
+    printf ("\n=== After optimization pass %d ===\n\n", n);
     print_node (node);
   }
 }
@@ -447,8 +445,8 @@ eval_binop_const (NODE *node)
   case OPCODE_NOT:
     abort();
   }
-  node_free (left);
-  node_free (right);
+  freenode (left);
+  freenode (right);
   node->left = node->right = NULL;
   node->type = NODE_CONST;
   optcnt++;
@@ -487,8 +485,8 @@ eval_binop_simple (NODE *node)
 	  node->v.symbol = right->v.symbol;
 	}
     }
-  node_free (left);
-  node_free (right);
+  freenode (left);
+  freenode (right);
   node->left = node->right = NULL;
 }
 
@@ -535,7 +533,7 @@ pass2_unop (NODE *node)
     default:
       abort();
     }
-    node_free (operand);
+    freenode (operand);
     optcnt++;
   }
 }
@@ -549,7 +547,7 @@ pass2_asgn (NODE *node)
       if (verbose)
 	printf ("Optimizing node %4.4lu (ASGN)...\n", node->node_id);
 
-      node_free (node->v.asgn.expr);
+      freenode (node->v.asgn.expr);
       node->v.asgn.expr = NULL;
       node->type = NODE_NOOP;
     }
@@ -642,35 +640,7 @@ optimize_pass_3 (NODE *node)
 }
 
 
-/* Mark & Sweep */
-
-extern NODE *memory_pool;
-extern NODE *free_memory_pool;
-static NODE *tmp_memory_pool;
-
-static void
-mark_node (NODE *node)
-{
-  list_remove (&memory_pool, node);
-  list_append (&tmp_memory_pool, node);
-
-  printf ("marking node %4.4lu (%p)\n", node->node_id, node);
-}
-
-static void
-sweep (NODE *new_pool)
-{
-  /* Append memory_pool to free_memory_pool */
-  NODE *p, *next;
-  for (p = memory_pool; p; p = next)
-    {
-      next = p->memory_link;
-      list_append (&free_memory_pool, p);
-    }
-
-  memory_pool = new_pool;
-  printf ("sweeping!\n");
-}
+/* Mark & sweep: check *all* nodes */
 
 optimize_fp mark_opttab[] = {
   mark_node,     /* NODE_NOOP */
