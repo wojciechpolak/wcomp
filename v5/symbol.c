@@ -224,10 +224,21 @@ print_all_symbols (SYMBOL *s)
     }
 }
 
+/*
+  Computing the stack.
+*/
+
+static void
+compute_auto_offsets (function_t *fnc)
+{
+
+}
+
 void
 compute_stack_and_data (void)
 {
   SYMBOL *s = symbol_functions;
+  off_t rel = 1;
 
   /* function parameters */
 
@@ -237,6 +248,16 @@ compute_stack_and_data (void)
       int nparam = s->v.fnc->nparam;
       for (p = s->v.fnc->param; p; p = p->next)
 	p->symbol->v.var->rel_address = nparam--;
+
+      compute_auto_offsets (s->v.fnc);
+    }
+
+  /* global variables */
+
+  s = symbol_variables;
+  for (; s && s->type == SYMBOL_VAR; s = s->next)
+    {
+      s->v.var->rel_address = rel++;
     }
 }
 

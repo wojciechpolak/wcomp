@@ -135,17 +135,22 @@ struct arglist_struct
 typedef struct node_struct NODE;
 typedef struct arglist_struct ARGLIST;
 
-/* global variables */
+/* Generalized interface */
+typedef void (*traverse_fp)(NODE *);
+
+/* Global variables */
 extern NODE *root;  /* the root of a parse tree */
 
 extern unsigned int nodes_counter;
 extern int print_offsets;
 
-/* function prototypes */
+/* Function prototypes */
 NODE *addnode (enum node_type);
 void freenode (NODE *);
 void free_all_nodes (void);
 ARGLIST *make_arglist (NODE *, ARGLIST *);
+
+void traverse (NODE *, traverse_fp *);
 
 unsigned int get_last_node_id (void);
 void print_tree (NODE *);

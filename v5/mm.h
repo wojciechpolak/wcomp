@@ -1,5 +1,5 @@
 /*
-   V4: mm.h
+   V5: mm.h
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 
@@ -28,6 +28,7 @@ extern NODE *tmp_memory_pool;
 void mpool_append (NODE **, NODE *);
 void mpool_remove (NODE **, NODE *);
 
+NODE *mark_free (NODE *);
 void mark_node (NODE *);
 void sweep (NODE *);
 

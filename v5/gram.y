@@ -37,9 +37,6 @@ extern char *yytext;
 extern size_t input_line_num;
 extern int errcnt;
 
-static int data_offset; /* position of the next global variable */
-static int tos_offset;  /* position of the next automatic
-                           variable against ATOS */
 %}
 
 %union
@@ -145,11 +142,6 @@ variable_declaration
                   $$ = addnode (NODE_VAR_DECL);
                   $$->v.vardecl.symbol = s;
                   $$->v.vardecl.expr = $3;
-
-		  if ($1 == QUA_GLOBAL)
-		    s->v.var->rel_address = 1 + data_offset++;
-		  else if ($1 == QUA_AUTO)
-		    s->v.var->rel_address = 1 + tos_offset++;
                }
              ;
 
@@ -274,7 +266,6 @@ function_declaration
              : fundecl_header statement
                {
                   $$ = addnode (NODE_FNC_DECL);
-		  $1->v.fnc->nauto = tos_offset;
                   $1->v.fnc->entry_point = $2;
                   $$->v.fncdecl.symbol = $1;
                   $$->v.fncdecl.stmt = $2;
@@ -294,8 +285,6 @@ fundecl_header
                   $$ = putsym (&symbol_functions, $2, SYMBOL_FNC);
 		  $$->v.fnc->nparam = nparam;
                   $$->v.fnc->param = $4;
-
-		  tos_offset = 0;
                }
              ;
 
