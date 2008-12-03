@@ -1,5 +1,5 @@
 /*
-   V3: symbol.c
+   V4: symbol.c
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 

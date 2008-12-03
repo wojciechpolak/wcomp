@@ -381,7 +381,7 @@ print_node (NODE *node)
     print_fnc_decl (node);
     break;
   default:
-    abort();
+    abort ();
   }
 
   if (!node->right) {

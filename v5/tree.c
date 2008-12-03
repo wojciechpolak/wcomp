@@ -160,7 +160,7 @@ traverse_stmt (NODE *node, traverse_fp *fptab)
 {
   switch (node->type) {
   case NODE_CALL:
-    traverse_funcall(node, fptab);
+    traverse_funcall (node, fptab);
     break; 
   case NODE_ASGN:
     traverse_node (node->v.asgn.expr, fptab);

@@ -27,6 +27,8 @@ NODE *memory_pool;
 NODE *free_memory_pool;
 NODE *tmp_memory_pool;
 
+extern int verbose;
+
 void
 mpool_append (NODE **head, NODE *p)
 {
@@ -106,6 +108,10 @@ sweep (NODE *new_pool)
     {
       next = p->memory_link;
       mpool_append (&free_memory_pool, p);
+
+      nodes_counter--;
+      if (verbose > 1)
+	printf ("[moving %4.4lu to free_memory_pool]\n", p->node_id);
     }
 
   memory_pool = new_pool;

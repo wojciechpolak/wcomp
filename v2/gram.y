@@ -138,7 +138,7 @@ variable_declaration
                     s->v.var->qualifier = $1;
 
                   $$ = addnode (NODE_VAR_DECL);
-		  $$->v.vardecl.symbol = s;
+                  $$->v.vardecl.symbol = s;
                   $$->v.vardecl.expr = $3;
                }
              ;
@@ -265,7 +265,7 @@ function_declaration
                {
                   $$ = addnode (NODE_FNC_DECL);
                   $1->v.fnc->entry_point = $2;
-		  $$->v.fncdecl.symbol = $1;
+                  $$->v.fncdecl.symbol = $1;
                   $$->v.fncdecl.stmt = $2;
                }
              ;
@@ -473,27 +473,27 @@ function_call
 
                   s = getsym (symbol_functions, $1);
                   if (!s)
-		    {
-		      parse_error ("Function `%s' is not defined", $1);
-		      $$ = NULL;
-		    }
-		  else
-		    {
-		      /* Count the number of arguments */
-		      for (np = $3, nparam = 0; np; np = np->next)
-			nparam++;
+                    {
+                      parse_error ("Function `%s' is not defined", $1);
+                      $$ = NULL;
+                    }
+                  else
+                    {
+                      /* Count the number of arguments */
+                      for (np = $3, nparam = 0; np; np = np->next)
+                         nparam++;
 
-		      /* Check if the number of args is OK */
-		      if (s->v.fnc->nparam < nparam)
-			parse_error ("Too many arguments in call to `%s'", $1);
-		      else if (s->v.fnc->nparam > nparam)
-			parse_error ("Too few arguments in call to `%s'", $1);
+                      /* Check if the number of args is OK */
+                      if (s->v.fnc->nparam < nparam)
+                        parse_error ("Too many arguments in call to `%s'", $1);
+                      else if (s->v.fnc->nparam > nparam)
+                        parse_error ("Too few arguments in call to `%s'", $1);
 
-		      /* Create a new node */
-		      $$ = addnode (NODE_CALL);
-		      $$->v.funcall.symbol = s;
-		      $$->v.funcall.args = $3;
-		    }
+                      /* Create a new node */
+                      $$ = addnode (NODE_CALL);
+                      $$->v.funcall.symbol = s;
+                      $$->v.funcall.args = $3;
+                    }
                }
              ;
 %%
@@ -530,6 +530,6 @@ parse (void)
   if (p)
     yydebug =  *p - '0';
   input_line_num = 1;
-  return yyparse();
+  return yyparse ();
 }
 

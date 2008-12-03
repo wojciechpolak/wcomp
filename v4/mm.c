@@ -110,7 +110,7 @@ sweep (NODE *new_pool)
       mpool_append (&free_memory_pool, p);
 
       nodes_counter--;
-      if (verbose)
+      if (verbose > 1)
 	printf ("[moving %4.4lu to free_memory_pool]\n", p->node_id);
     }
 

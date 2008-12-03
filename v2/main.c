@@ -22,19 +22,19 @@
 #include "symbol.h"
 #include "tree.h"
 
-extern int parse(void);
+extern int parse (void);
 
 int errcnt; /* general error counter */
 
 int
 main (void)
 {
-  int status = parse();
+  int status = parse ();
 
   if (status == 0 && errcnt == 0)
     {
-      printf ("=== The parse tree (%d nodes) ===\n\n",
-	      get_last_node_id());
+      printf ("=== The input parse tree (%d nodes) ===\n\n",
+	      get_last_node_id ());
       print_node (root);
     }
 

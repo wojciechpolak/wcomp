@@ -20,14 +20,14 @@
 
 #include <stdio.h>
 
-extern int parse(void);
+extern int parse (void);
 
 int errcnt; /* general error counter */
 
 int
 main (void)
 {
-  int status = parse();
+  int status = parse ();
   if (errcnt)
     status = 1;
   printf ("Syntax analysis: %s\n", status ? "Failed" : "Passed");

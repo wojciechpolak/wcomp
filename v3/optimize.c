@@ -31,13 +31,13 @@ extern int optimize_level;
 static void
 optimize_pass (int n, NODE *node, traverse_fp *fptab)
 {
-  if (verbose)
+  if (verbose > 1)
     printf ("\n=== Optimization pass %d ===\n\n", n);
 
   traverse (node, fptab);
   sweep (mark_free (root));
 
-  if (verbose) {
+  if (verbose > 2) {
     printf ("\n=== After optimization pass %d ===\n\n", n);
     print_node (node);
   }
@@ -54,8 +54,8 @@ static void
 simple_swap (NODE *node)
 {
   NODE *p = node->left;
-  if (verbose)
-    printf ("Swap in node %4.4lu...\n", node->node_id);
+  if (verbose > 1)
+    printf ("Swap in node %4.4lu\n", node->node_id);
   node->left = node->right;
   node->right = p;
 }
@@ -134,8 +134,8 @@ transpose0 (NODE *node)
   NODE *right = node->right;
   enum opcode_type op, rop;
 
-  if (verbose)
-    printf ("Transpose, node %4.4lu...\n", node->node_id);
+  if (verbose > 1)
+    printf ("Transpose, node %4.4lu\n", node->node_id);
 
   op = node->v.opcode;
   rop = right->v.opcode;
@@ -205,8 +205,8 @@ transpose_left0 (NODE *node)
       NODE *s;
       enum opcode_type op;
 
-      if (verbose)
-	printf ("Transpose, node %4.4lu...\n", node->node_id);
+      if (verbose > 1)
+	printf ("Transpose, node %4.4lu\n", node->node_id);
 
       op = node->v.opcode;
       node->v.opcode = left->v.opcode;
@@ -289,7 +289,7 @@ optimize_pass_1 (NODE *node)
 }
 
 
-/* Pass 2: Immediate computations */
+/* Pass 2: Immediate computations (constant folding) */
 
 static size_t optcnt;
 
@@ -299,8 +299,8 @@ eval_binop_const (NODE *node)
   NODE *left = node->left;
   NODE *right = node->right;
 
-  if (verbose)
-    printf ("Optimizing node %4.4lu (BINOP)...\n", node->node_id);
+  if (verbose > 1)
+    printf ("Optimizing node %4.4lu (BINOP)\n", node->node_id);
 
   switch (node->v.opcode) {
   case OPCODE_ADD:
@@ -359,8 +359,8 @@ eval_binop_simple (NODE *node)
   NODE *left  = node->left;
   NODE *right = node->right;
 
-  if (verbose)
-    printf ("Optimizing node %4.4lu (BINOP)...\n", node->node_id);
+  if (verbose > 1)
+    printf ("Optimizing node %4.4lu (BINOP)\n", node->node_id);
 
   if (node->v.opcode == OPCODE_MUL)
     {
@@ -445,8 +445,8 @@ pass2_asgn (NODE *node)
   if (node->v.asgn.expr->v.expr->type == NODE_VAR
       && node->v.asgn.symbol == node->v.asgn.expr->v.expr->v.symbol)
     {
-      if (verbose)
-	printf ("Optimizing node %4.4lu (ASGN)...\n", node->node_id);
+      if (verbose > 1)
+	printf ("Optimizing node %4.4lu (ASGN)\n", node->node_id);
 
       freenode (node->v.asgn.expr);
       node->v.asgn.expr = NULL;
@@ -480,7 +480,7 @@ optimize_pass_2 (NODE *node)
 }
 
 
-/* Pass 3: Substitution of constant variables */
+/* Pass 3: Substitution of constant variables (constant propagation) */
 
 #define VAR_IS_CONST(s) (s && s->v.var->entry_point && \
                          s->v.var->entry_point->v.expr->type == \
@@ -493,8 +493,8 @@ pass3_var (NODE *node)
 
   if (VAR_IS_CONST (s))
     {
-      if (verbose)
-	printf ("Optimizing node %4.4lu (VAR)...\n", node->node_id);
+      if (verbose > 1)
+	printf ("Optimizing node %4.4lu (VAR)\n", node->node_id);
 
       node->v.expr = NULL;
       node->v.number = s->v.var->entry_point->v.expr->v.number;

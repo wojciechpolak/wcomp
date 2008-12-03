@@ -94,7 +94,6 @@ free_all_nodes (void)
     printf ("Panic! %d node(s) not freed.\n", nodes_counter);
 }
 
-
 ARGLIST *
 make_arglist (NODE *node, ARGLIST *next)
 {
@@ -159,7 +158,7 @@ traverse_stmt (NODE *node, traverse_fp *fptab)
 {
   switch (node->type) {
   case NODE_CALL:
-    traverse_funcall(node, fptab);
+    traverse_funcall (node, fptab);
     break; 
   case NODE_ASGN:
     traverse_node (node->v.asgn.expr, fptab);

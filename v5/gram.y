@@ -27,7 +27,6 @@
 #include <stdarg.h>
 #include "symbol.h"
 #include "tree.h"
-#include "optimize.h"
 
 extern int yylex (void);
 int yyerror (const char *);
@@ -36,7 +35,6 @@ void parse_error (const char *, ...);
 extern char *yytext;
 extern size_t input_line_num;
 extern int errcnt;
-
 %}
 
 %union
@@ -532,6 +530,6 @@ parse (void)
   if (p)
     yydebug =  *p - '0';
   input_line_num = 1;
-  return yyparse();
+  return yyparse ();
 }
 

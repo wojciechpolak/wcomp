@@ -60,14 +60,14 @@ main (int argc, char *argv[])
       }
       open_file (argv[optind]);
     }
-	
+
   status = parse ();
 
   if (status == 0 && errcnt == 0)
     {
       if (verbose)
 	{
-	  printf ("=== The parse tree (%d nodes) ===\n\n",
+	  printf ("=== The input parse tree (%d nodes) ===\n\n",
 		  nodes_counter);
 	  print_node (root);
 	}

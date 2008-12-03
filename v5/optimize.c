@@ -31,14 +31,14 @@ extern int optimize_level;
 static void
 optimize_pass (int n, NODE *node, traverse_fp *fptab)
 {
-  if (verbose)
+  if (verbose > 1)
     printf ("\n=== Optimization pass %d ===\n\n", n);
 
   traverse (node, fptab);
   sweep (mark_free (root));
 
-  if (verbose) {
-    printf ("\n=== After optimization pass %d ===\n\n", n); 
+  if (verbose > 2) {
+    printf ("\n=== After optimization pass %d ===\n\n", n);
     print_node (node);
   }
 }
@@ -54,7 +54,7 @@ static void
 simple_swap (NODE *node)
 {
   NODE *p = node->left;
-  if (verbose)
+  if (verbose > 1)
     printf ("Swap in node %4.4lu\n", node->node_id);
   node->left = node->right;
   node->right = p;
@@ -134,7 +134,7 @@ transpose0 (NODE *node)
   NODE *right = node->right;
   enum opcode_type op, rop;
 
-  if (verbose)
+  if (verbose > 1)
     printf ("Transpose, node %4.4lu\n", node->node_id);
 
   op = node->v.opcode;
@@ -205,7 +205,7 @@ transpose_left0 (NODE *node)
       NODE *s;
       enum opcode_type op;
 
-      if (verbose)
+      if (verbose > 1)
 	printf ("Transpose, node %4.4lu\n", node->node_id);
 
       op = node->v.opcode;
@@ -289,7 +289,7 @@ optimize_pass_1 (NODE *node)
 }
 
 
-/* Pass 2: Immediate computations */
+/* Pass 2: Immediate computations (constant folding) */
 
 static size_t optcnt;
 
@@ -299,7 +299,7 @@ eval_binop_const (NODE *node)
   NODE *left = node->left;
   NODE *right = node->right;
 
-  if (verbose)
+  if (verbose > 1)
     printf ("Optimizing node %4.4lu (BINOP)\n", node->node_id);
 
   switch (node->v.opcode) {
@@ -359,7 +359,7 @@ eval_binop_simple (NODE *node)
   NODE *left  = node->left;
   NODE *right = node->right;
 
-  if (verbose)
+  if (verbose > 1)
     printf ("Optimizing node %4.4lu (BINOP)\n", node->node_id);
 
   if (node->v.opcode == OPCODE_MUL)
@@ -397,7 +397,7 @@ eval_binop_simple_logic (NODE *node)
 {
   NODE *right = node->right;
 
-  if (verbose)
+  if (verbose > 1)
     printf ("Optimizing node %4.4lu (BINOP)\n", node->node_id);
 
   if (node->v.opcode == OPCODE_AND)
@@ -484,7 +484,7 @@ pass2_asgn (NODE *node)
   if (node->v.asgn.expr->v.expr->type == NODE_VAR
       && node->v.asgn.symbol == node->v.asgn.expr->v.expr->v.symbol)
     {
-      if (verbose)
+      if (verbose > 1)
 	printf ("Optimizing node %4.4lu (ASGN)\n", node->node_id);
 
       freenode (node->v.asgn.expr);
@@ -519,7 +519,7 @@ optimize_pass_2 (NODE *node)
 }
 
 
-/* Pass 3: Substitution of constant variables */
+/* Pass 3: Substitution of constant variables (constant propagation) */
 
 #define VAR_IS_CONST(s) (s && s->v.var->entry_point && \
                          s->v.var->entry_point->v.expr->type == \
@@ -532,7 +532,7 @@ pass3_var (NODE *node)
 
   if (VAR_IS_CONST (s))
     {
-      if (verbose)
+      if (verbose > 1)
 	printf ("Optimizing node %4.4lu (VAR)\n", node->node_id);
 
       node->v.expr = NULL;
@@ -618,7 +618,7 @@ pass4b_vardecl (NODE *node)
 {
   if (node->v.vardecl.symbol->ref_count == 0)
     {
-      if (verbose)
+      if (verbose > 1)
 	printf ("Removing unused %s variable %s (node %4.4lu)\n",
 		node->v.vardecl.symbol->v.var->qualifier == QUA_GLOBAL ?
 	        "global" : "automatic",
@@ -655,7 +655,7 @@ optimize_pass_4 (NODE *node)
 }
 
 
-/* Pass 5: Elimination of ??? */
+/* Pass 5: Elimination of dead conditionals */
 
 static void
 pass5_condition (NODE *node)
@@ -665,18 +665,18 @@ pass5_condition (NODE *node)
   if (cond->v.expr->type == NODE_CONST) {
     if (cond->v.expr->v.number == 1) /* TRUE */
       {
-	if (verbose)
+	if (verbose > 1)
 	  printf ("Eliminating conditional, node %4.4lu (always true)\n",
 		  node->node_id);
 	node->v.condition.iftrue_stmt->right = node->right;
 	node->right = node->v.condition.iftrue_stmt;
 	node->type = NODE_NOOP;
-	// node->v.condition.iffalse_stmt = NULL;
-	// freenode (node->v.condition.iffalse_stmt);
+	/* node->v.condition.iffalse_stmt = NULL;
+	   freenode (node->v.condition.iffalse_stmt); */
       }
     else if (cond->v.expr->v.number == 0) /* FALSE */
       {
-	if (verbose)
+	if (verbose > 1)
 	  printf ("Eliminating conditional, node %4.4lu (always false)\n",
 		  node->node_id);
 	node->v.condition.iffalse_stmt->right = node->right;

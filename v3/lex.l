@@ -28,7 +28,7 @@
 #include "tree.h"
 #include "gram.tab.h"
 
-static void stray_character_error(void);
+static void stray_character_error (void);
 size_t input_line_num;
 %}
 
@@ -83,7 +83,7 @@ while                      return WHILE;
 .                          stray_character_error();
 %%
 
-extern int yyerror(const char *s);
+extern int yyerror (const char *s);
 
 int
 yywrap (void)
@@ -94,9 +94,9 @@ yywrap (void)
 static void
 stray_character_error (void)
 {
-  char buf[sizeof("stray character 'xxxx'")];
+  char buf[sizeof ("stray character 'xxxx'")];
 
-  if (isprint (yytext[0]) && !isspace(yytext[0])) 
+  if (isprint (yytext[0]) && !isspace (yytext[0])) 
     sprintf (buf, "stray character '%c'", yytext[0]);
   else
     sprintf (buf, "stray character '\\%03o'", yytext[0]);

@@ -1,6 +1,6 @@
 %{
 /*
-   V3: gram.y
+   V4: gram.y
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 
@@ -27,7 +27,6 @@
 #include <stdarg.h>
 #include "symbol.h"
 #include "tree.h"
-#include "optimize.h"
 
 extern int yylex (void);
 int yyerror (const char *);
@@ -531,6 +530,6 @@ parse (void)
   if (p)
     yydebug =  *p - '0';
   input_line_num = 1;
-  return yyparse();
+  return yyparse ();
 }
 

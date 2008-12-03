@@ -135,7 +135,7 @@ struct arglist_struct
 typedef struct node_struct NODE;
 typedef struct arglist_struct ARGLIST;
 
-/* Generalized interface */
+/* Generalized traversal interface */
 typedef void (*traverse_fp)(NODE *);
 
 /* Global variables */

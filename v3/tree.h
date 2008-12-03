@@ -140,6 +140,7 @@ typedef void (*traverse_fp)(NODE *);
 
 /* Global variables */
 extern NODE *root;  /* the root of a parse tree */
+extern unsigned int nodes_counter;
 
 /* Function prototypes */
 NODE *addnode (enum node_type);

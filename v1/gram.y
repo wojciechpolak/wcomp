@@ -25,8 +25,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern int yylex(void);
-int yyerror(const char *s);
+extern int yylex (void);
+int yyerror (const char *);
 
 extern char *yytext;
 extern size_t input_line_num;
@@ -192,6 +192,6 @@ parse (void)
   if (p)
     yydebug =  *p - '0';
   input_line_num = 1;
-  return yyparse();
+  return yyparse ();
 }
 

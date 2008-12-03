@@ -1,5 +1,5 @@
 /*
-   V3: optimize.h
+   V4: optimize.h
 
    Copyright (C) 2003, 2004 Wojciech Polak.
 

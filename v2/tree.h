@@ -134,17 +134,17 @@ struct arglist_struct
 typedef struct node_struct NODE;
 typedef struct arglist_struct ARGLIST;
 
-/* global variables */
+/* Global variables */
 extern NODE *root;  /* the root of a parse tree */
 
-/* function prototypes */
+/* Function prototypes */
 NODE *addnode (enum node_type);
 void free_all_nodes (void);
 ARGLIST *make_arglist (NODE *, ARGLIST *);
 
 unsigned int get_last_node_id (void);
 void print_tree (NODE *);
-void print_node(NODE *);
+void print_node (NODE *);
 
 #endif /* not _TREE_H */
 
